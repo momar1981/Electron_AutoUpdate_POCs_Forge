@@ -1,0 +1,6 @@
+node_modules/
+out/
+.vscode/
+appsettings.json
+**/package-lock.json
+**/logs

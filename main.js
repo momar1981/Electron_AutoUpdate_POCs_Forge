@@ -1,9 +1,10 @@
-const { app, BrowserWindow, Menu, MenuItem, ipcMain } = require("electron");
+const { app, BrowserWindow, Menu, MenuItem, ipcMain, autoUpdater  } = require("electron");
 const { globalShortcut } = require("electron/main");
 const { handleInstallEvents } = require("./config/install.config");
 const fs = require("fs");
 const path = require("path");
 const openAboutWindow = require("about-window").default;
+const log = require('electron-log');
 
 var win;
 
@@ -161,6 +162,8 @@ function createWindow(isAllowDevTool = false) {
 }
 
 app.whenReady().then(() => {
+  autoUpdater.checkForUpdatesAndNotify();
+
   win = createWindow(true);
 
   globalShortcut.register("CommandOrControl+Shift+I", () => {});
@@ -194,4 +197,27 @@ app.on("window-all-closed", function () {
 
 app.on('quit',() => 
 {
+});
+
+// Set up logging
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'info';
+log.info('App starting...');
+
+// Configure auto updater
+autoUpdater.setFeedURL({
+  provider: 'generic',
+  url: 'https://deploy-dev.getedara.com/edara_app_win64.zip'//'https://pwa-electron.edara.io/edara_app_win64.zip';
+});
+
+// Listen for update downloaded
+autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
+  log.info('Update downloaded');
+  // Quit and install the update
+  autoUpdater.quitAndInstall();
+});
+
+// Listen for update error
+autoUpdater.on('error', (error) => {
+  log.error('Error fetching updates:', error.message);
 });
