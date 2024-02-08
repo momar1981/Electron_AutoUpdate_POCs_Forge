@@ -214,7 +214,7 @@ log.info('App starting...');
 // Configure auto updater
 autoUpdater.setFeedURL({
   provider: 'generic',
-  url: 'https://raw.githubusercontent.com/momar1981/Electron_AutoUpdate_POCs_Forge/main/autoupdate/latest.json'//'https://pwa-electron.edara.io/edara_app_win64.zip';
+  url: 'https://raw.githubusercontent.com/momar1981/Electron_AutoUpdate_POCs_Forge/main/autoupdate/'//'https://pwa-electron.edara.io/edara_app_win64.zip';
 });
 
 // Listen for update downloaded
