@@ -214,7 +214,7 @@ autoUpdater.setFeedURL({
 
 // Listen for update downloaded
 autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
-  log.info('Update downloaded');
+  log.info('Update downloaded.');
 
   // Display a dialog to the user informing them about the update
   dialog.showMessageBox({
