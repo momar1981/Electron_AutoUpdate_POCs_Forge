@@ -1,10 +1,11 @@
-const { app, BrowserWindow, Menu, MenuItem, ipcMain, autoUpdater  } = require("electron");
+const { app, BrowserWindow, Menu, MenuItem, ipcMain} = require("electron");
 const { globalShortcut } = require("electron/main");
 const { handleInstallEvents } = require("./config/install.config");
 const fs = require("fs");
 const path = require("path");
 const openAboutWindow = require("about-window").default;
 const log = require('electron-log');
+const {autoUpdater} = require("electron-updater");
 
 var win;
 
@@ -207,7 +208,7 @@ log.info('App starting...');
 // Configure auto updater
 autoUpdater.setFeedURL({
   provider: 'generic',
-  url: 'https://deploy-dev.getedara.com/edara_app_win64.zip'//'https://pwa-electron.edara.io/edara_app_win64.zip';
+  url: 'https://raw.githubusercontent.com/momar1981/Electron_AutoUpdate_POCs_Forge/main/autoupdate/'//'https://pwa-electron.edara.io/edara_app_win64.zip';
 });
 
 // Listen for update downloaded
