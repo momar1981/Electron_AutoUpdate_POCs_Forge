@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, MenuItem, ipcMain} = require("electron");
+const { app, BrowserWindow, Menu, MenuItem, ipcMain, dialog } = require("electron");
 const { globalShortcut } = require("electron/main");
 const { handleInstallEvents } = require("./config/install.config");
 const fs = require("fs");
@@ -8,7 +8,11 @@ const log = require('electron-log');
 const {autoUpdater} = require("electron-updater");
 
 var win;
-
+Object.defineProperty(app, 'isPackaged', {
+  get() {
+    return true;
+  }
+});
 // squirrel event handled and app will exit in 1000ms, so don't do anything else
 if (handleInstallEvents(app)) return;
 
@@ -163,6 +167,7 @@ function createWindow(isAllowDevTool = false) {
 }
 
 app.whenReady().then(() => {
+  debugger;
   autoUpdater.checkForUpdatesAndNotify();
 
   win = createWindow(true);
@@ -200,6 +205,7 @@ app.on('quit',() =>
 {
 });
 
+debugger;
 // Set up logging
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
@@ -208,17 +214,30 @@ log.info('App starting...');
 // Configure auto updater
 autoUpdater.setFeedURL({
   provider: 'generic',
-  url: 'https://raw.githubusercontent.com/momar1981/Electron_AutoUpdate_POCs_Forge/main/autoupdate/'//'https://pwa-electron.edara.io/edara_app_win64.zip';
+  url: 'https://raw.githubusercontent.com/momar1981/Electron_AutoUpdate_POCs_Forge/main/autoupdate/latest.json'//'https://pwa-electron.edara.io/edara_app_win64.zip';
 });
 
 // Listen for update downloaded
 autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
+  debugger;
   log.info('Update downloaded');
+
+  // Display a dialog to the user informing them about the update
+  dialog.showMessageBox({
+    type: 'info',
+    title: 'Update Available',
+    message: 'A new version of the application is available. It will be installed automatically.',
+    buttons: ['OK']
+  });
+  
   // Quit and install the update
   autoUpdater.quitAndInstall();
 });
 
 // Listen for update error
 autoUpdater.on('error', (error) => {
+  debugger;
   log.error('Error fetching updates:', error.message);
+   // Optionally, notify the user about the error
+   dialog.showErrorBox('Error', 'An error occurred while checking for updates. Please try again later.');
 });
