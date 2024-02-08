@@ -112,8 +112,7 @@ function createWindow(isAllowDevTool = false) {
       nodeIntegration: true, // is default value after Electron v5
       contextIsolation: false, // protect against prototype pollution
       enableRemoteModule: false, // turn off remote
-      devTools: isAllowDevTool,
-      preload: `${__dirname}/update/update.js`
+      devTools: isAllowDevTool
     },
     show: true
   });
@@ -203,7 +202,6 @@ app.on('quit',() =>
 {
 });
 
-debugger;
 // Set up logging
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
@@ -216,7 +214,6 @@ autoUpdater.setFeedURL({
 
 // Listen for update downloaded
 autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
-  debugger;
   log.info('Update downloaded');
 
   // Display a dialog to the user informing them about the update
@@ -233,7 +230,6 @@ autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
 
 // Listen for update error
 autoUpdater.on('error', (error) => {
-  debugger;
   log.error('Error fetching updates:', error.message);
    // Optionally, notify the user about the error
    dialog.showErrorBox('Error', 'An error occurred while checking for updates. Please try again later.');
