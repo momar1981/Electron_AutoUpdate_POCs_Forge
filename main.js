@@ -5,6 +5,7 @@ const fs = require("fs");
 const path = require("path");
 const openAboutWindow = require("about-window").default;
 const log = require('electron-log');
+const package = require('./package.json');
 
 var win;
 Object.defineProperty(app, 'isPackaged', {
@@ -57,7 +58,7 @@ function openAboutPanel() {
     show_close_button: "Close",
     use_inner_html: true,
     use_version_info: [
-      ["Application", appVersion],
+      ["Application", package.version],
       ["Node", nodeVersion],
       ["Electron", electronVersion],
       ["Chrome", chromeVersion]
