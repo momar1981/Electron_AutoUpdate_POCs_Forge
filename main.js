@@ -4,10 +4,12 @@ const { handleInstallEvents } = require("./config/install.config");
 const fs = require("fs");
 const path = require("path");
 const openAboutWindow = require("about-window").default;
-const log = require('electron-log');
 const package = require('./package.json');
+const log = require('./helpers/logger');
 
 var win;
+var isUpdateInProgress = false;
+
 Object.defineProperty(app, 'isPackaged', {
   get() {
     return true;
@@ -67,15 +69,16 @@ function openAboutPanel() {
   });
 }
 
-function createAppMenu() {
+function createAppMenu(updatingVersion) 
+{
   const menuTemplate = [
     { role: "fileMenu" },
     { role: "editMenu" },
     {
       label: "View",
       submenu: [
-        { role: "reload" },
-        { role: "forceReload" },
+        { role: "reload", visible: !updatingVersion },
+        { role: "forceReload", visible: !updatingVersion },
         { type: "separator" },
         { role: "resetZoom" },
         { role: "zoomIn" },
@@ -101,7 +104,7 @@ function createAppMenu() {
 
 // this should be placed at top of main.js to handle setup events quickly
 function createWindow(isAllowDevTool = false) {
-  createAppMenu();
+  createAppMenu(false);
   const win = new BrowserWindow({
     width: 1000,
     height: 800,
@@ -113,7 +116,8 @@ function createWindow(isAllowDevTool = false) {
       nodeIntegration: true, // is default value after Electron v5
       contextIsolation: false, // protect against prototype pollution
       enableRemoteModule: false, // turn off remote
-      devTools: isAllowDevTool
+      devTools: isAllowDevTool,
+      preload: `${__dirname}/autoupdate/update.js`
     },
     show: true
   });
@@ -145,11 +149,12 @@ function createWindow(isAllowDevTool = false) {
   });
 
   //Add context-menu
-  win.webContents.on("context-menu", function (_event, params) {
+  win.webContents.on("context-menu", function (_event, params) 
+  {
     const ctxmenu = new Menu();
-    ctxmenu.append(new MenuItem({ label: "Reload", role: "reload" }));
+    ctxmenu.append(new MenuItem({ label: "Reload", role: "reload", visible: !isUpdateInProgress }));
     ctxmenu.append(
-      new MenuItem({ label: "Force reload", role: "forcereload" })
+      new MenuItem({ label: "Force reload", role: "forcereload", visible: !isUpdateInProgress  })
     );
     ctxmenu.append(new MenuItem({ label: "Copy", role: "copy" }));
     if (params.isEditable) {
@@ -203,35 +208,38 @@ app.on('quit',() =>
 {
 });
 
-// Set up logging
-autoUpdater.logger = log;
-autoUpdater.logger.transports.file.level = 'info';
-log.info('App starting...');
-
 // Configure auto updater
+let feedUrl = 'https://edarapublish.blob.core.windows.net:443/publicfilesforelectron/';
 autoUpdater.setFeedURL({
-  url: 'https://edarapublish.blob.core.windows.net:443/publicfilesforelectron/'//'https://pwa-electron.edara.io/edara_app_win64.zip';
+  url: feedUrl
 });
 
-// Listen for update downloaded
-autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
-  log.info('Update downloaded.');
+autoUpdater.on('update-available', () => {
+  log("update-available...");
+  isUpdateInProgress = true;
+  if (win && !win.isDestroyed()) 
+  {
+    win.webContents.once('dom-ready', () => {
+      win.webContents.executeJavaScript(`CheckForUpdates(${isUpdateInProgress},"${feedUrl}loading.gif");`);
+    }); 
 
-  // Display a dialog to the user informing them about the update
-  dialog.showMessageBox({
-    type: 'info',
-    title: 'Update Available',
-    message: 'A new version of the application is available. It will be installed automatically.',
-    buttons: ['OK']
-  });
-  
-  // Quit and install the update
+    // Block Ctrl+R, F5, and close button
+    globalShortcut.register('CommandOrControl+R', () => {});
+    globalShortcut.register('F5', () => {});
+    win.on('close', (event) => {
+      event.preventDefault();
+    });
+    createAppMenu(isUpdateInProgress);
+  }
+});
+
+autoUpdater.on('update-downloaded', () => {
+  log("update-downloaded...");
+
+  // Allow Ctrl+R, F5, and close button
+  globalShortcut.unregister('CommandOrControl+R');
+  globalShortcut.unregister('F5');
+  win.removeAllListeners('close');
+  isUpdateInProgress = false;
   autoUpdater.quitAndInstall();
-});
-
-// Listen for update error
-autoUpdater.on('error', (error) => {
-  log.error('Error fetching updates:', error.message);
-   // Optionally, notify the user about the error
-   dialog.showErrorBox('Error', 'An error occurred while checking for updates. Please try again later.');
 });
