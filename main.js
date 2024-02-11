@@ -10,11 +10,11 @@ const log = require('./helpers/logger');
 var win;
 var isUpdateInProgress = false;
 
-Object.defineProperty(app, 'isPackaged', {
-  get() {
-    return true;
-  }
-});
+// Object.defineProperty(app, 'isPackaged', {
+//   get() {
+//     return true;
+//   }
+// });
 // squirrel event handled and app will exit in 1000ms, so don't do anything else
 if (handleInstallEvents(app)) return;
 
