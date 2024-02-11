@@ -1,6 +1,6 @@
 {
   "name": "edara",
-  "version": "1.21.0",
+  "version": "1.24.0",
   "description": "Edara",
   "main": "main.js",
   "scripts": {
@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "about-window": "~1.15.2",
+    "axios": "^1.6.7",
     "electron-log": "^5.1.1",
     "electron-squirrel-startup": "~1.0.0",
     "electron-updater": "^6.1.7",
@@ -47,6 +48,7 @@
     "node-rtsp-stream": "^0.0.9",
     "os": "^0.1.2",
     "path": "^0.12.7",
+    "proxy-from-env": "^1.1.0",
     "request": "~2.88.2"
   },
   "config": {

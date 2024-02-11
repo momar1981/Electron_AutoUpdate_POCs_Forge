@@ -172,7 +172,7 @@ function createWindow(isAllowDevTool = false) {
 }
 
 app.whenReady().then(() => {
-  autoUpdater.checkForUpdates();
+ try{ autoUpdater.checkForUpdates(); } catch{}
 
   win = createWindow(true);
 
