@@ -5,6 +5,7 @@ const fs = require("fs");
 const path = require("path");
 const openAboutWindow = require("about-window").default;
 const package = require('./package.json');
+const axios = require('axios');
 const log = require('./helpers/logger');
 
 var win;
@@ -208,11 +209,37 @@ app.on('quit',() =>
 {
 });
 
-// Configure auto updater
+// Configure auto updater if online
 let feedUrl = 'https://edarapublish.blob.core.windows.net:443/publicfilesforelectron/';
-autoUpdater.setFeedURL({
-  url: feedUrl
+isOnline().then((online) => {
+  if(online)
+  {  
+    autoUpdater.setFeedURL({
+      url: feedUrl
+    });
+  }
+  else
+    log('App is offline. Cannot set feed URL for auto updater.');
+})
+.catch((error) => {
+  log('App is offline. Cannot set feed URL for auto updater. Error: ', error);
 });
+
+// Check if app is online
+async function isOnline() 
+{
+  try {
+    let imageUrl = `${feedUrl}loading.gif`;
+    const response = await axios.get(imageUrl);
+    if (response.status === 200) {
+      return true; // Online
+    } else {
+      return false; // Offline or other error
+    }
+  } catch (error) {
+    return false; // Error occurred
+  }
+}
 
 autoUpdater.on('update-available', () => {
   log("update-available...");
