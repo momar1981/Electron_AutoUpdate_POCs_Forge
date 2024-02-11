@@ -5,17 +5,16 @@ const fs = require("fs");
 const path = require("path");
 const openAboutWindow = require("about-window").default;
 const package = require('./package.json');
-const axios = require('axios');
 const log = require('./helpers/logger');
 
 var win;
 var isUpdateInProgress = false;
 
-// Object.defineProperty(app, 'isPackaged', {
-//   get() {
-//     return true;
-//   }
-// });
+Object.defineProperty(app, 'isPackaged', {
+  get() {
+    return true;
+  }
+});
 // squirrel event handled and app will exit in 1000ms, so don't do anything else
 if (handleInstallEvents(app)) return;
 
@@ -172,7 +171,7 @@ function createWindow(isAllowDevTool = false) {
 }
 
 app.whenReady().then(() => {
- try{ autoUpdater.checkForUpdates(); } catch{}
+  autoUpdater.checkForUpdates();
 
   win = createWindow(true);
 
@@ -209,37 +208,11 @@ app.on('quit',() =>
 {
 });
 
-// Configure auto updater if online
+// Configure auto updater
 let feedUrl = 'https://edarapublish.blob.core.windows.net:443/publicfilesforelectron/';
-isOnline().then((online) => {
-  if(online)
-  {  
-    autoUpdater.setFeedURL({
-      url: feedUrl
-    });
-  }
-  else
-    log('App is offline. Cannot set feed URL for auto updater.');
-})
-.catch((error) => {
-  log('App is offline. Cannot set feed URL for auto updater. Error: ', error);
+autoUpdater.setFeedURL({
+  url: feedUrl
 });
-
-// Check if app is online
-async function isOnline() 
-{
-  try {
-    let imageUrl = `${feedUrl}loading.gif`;
-    const response = await axios.get(imageUrl);
-    if (response.status === 200) {
-      return true; // Online
-    } else {
-      return false; // Offline or other error
-    }
-  } catch (error) {
-    return false; // Error occurred
-  }
-}
 
 autoUpdater.on('update-available', () => {
   log("update-available...");
