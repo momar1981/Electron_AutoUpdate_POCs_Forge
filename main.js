@@ -4,17 +4,14 @@ const { handleInstallEvents } = require("./config/install.config");
 const fs = require("fs");
 const path = require("path");
 const openAboutWindow = require("about-window").default;
+const superagent = require('superagent');
 const package = require('./package.json');
 const log = require('./helpers/logger');
 
 var win;
+var feedUrl = 'https://edarapublish.blob.core.windows.net:443/publicfilesforelectron/';
 var isUpdateInProgress = false;
 
-Object.defineProperty(app, 'isPackaged', {
-  get() {
-    return true;
-  }
-});
 // squirrel event handled and app will exit in 1000ms, so don't do anything else
 if (handleInstallEvents(app)) return;
 
@@ -171,7 +168,7 @@ function createWindow(isAllowDevTool = false) {
 }
 
 app.whenReady().then(() => {
-  autoUpdater.checkForUpdates();
+  checkForUpdates();
 
   win = createWindow(true);
 
@@ -208,11 +205,27 @@ app.on('quit',() =>
 {
 });
 
-// Configure auto updater
-let feedUrl = 'https://edarapublish.blob.core.windows.net:443/publicfilesforelectron/';
-autoUpdater.setFeedURL({
-  url: feedUrl
-});
+function checkForUpdates()
+{
+  Object.defineProperty(app, 'isPackaged', {
+    get() {
+      return true;
+    }
+  });
+
+  isOnline().then(online => {
+    if (online) {
+      // Configure auto updater
+      autoUpdater.setFeedURL({
+        url: feedUrl
+      });
+
+      autoUpdater.checkForUpdates();
+    }
+  }).catch(error => {
+    console.error("Error occurred while checking for updates:", error);
+  });
+}
 
 autoUpdater.on('update-available', () => {
   log("update-available...");
@@ -243,3 +256,20 @@ autoUpdater.on('update-downloaded', () => {
   isUpdateInProgress = false;
   autoUpdater.quitAndInstall();
 });
+
+// Check if app is online
+function isOnline() 
+{
+  return new Promise((resolve) => {
+    let imageUrl = `${feedUrl}loading.gif`;
+    superagent.get(imageUrl).then(response => {
+      if (response.status === 200) {
+        resolve(true); // Online
+      } else {
+        resolve(false); // Offline or other error
+      }
+    }).catch(error => {
+      resolve(false); // Error occurred
+    });
+  });
+}
